@@ -346,15 +346,71 @@
                         console.log('First 3 rows:', results.data.slice(0, 3));
                         
                         allProducts = results.data.map(row => {
+                            // Parse image filenames
+                            const imageString = row['Image Filenames'] || '';
+                            const imageFiles = imageString.split(';').map(img => img.trim()).filter(img => img);
+                            
+                            // Get category - use Category if Category (English) is empty
+                            let category = (row['Category (English)'] || '').trim();
+                            if (!category || category === '') {
+                                category = (row['Category'] || 'Uncategorized').trim();
+                            }
+                            
+                            // Try multiple ways to get the Product ID
+                            let productId = '';
+                            const possibleIdKeys = Object.keys(row).filter(key => 
+                                key.toLowerCase().includes('product') && key.toLowerCase().includes('id')
+                            );
+                            if (possibleIdKeys.length > 0) {
+                                productId = (row[possibleIdKeys[0]] || '').toString().trim();
+                            }
+                            
+                            // Try multiple ways to get the Product Name
+                            let productName = '';
+                            const possibleNameKeys = Object.keys(row).filter(key => 
+                                key.toLowerCase().includes('product') && 
+                                key.toLowerCase().includes('name') && 
+                                key.toLowerCase().includes('english')
+                            );
+                            if (possibleNameKeys.length > 0) {
+                                productName = (row[possibleNameKeys[0]] || '').trim();
+                            }
+                            
+                            // Try multiple ways to get price
+                            let price = 0;
+                            const possiblePriceKeys = Object.keys(row).filter(key => 
+                                key.toLowerCase().includes('price') && key.toLowerCase().includes('eur')
+                            );
+                            if (possiblePriceKeys.length > 0) {
+                                price = parseFloat(row[possiblePriceKeys[0]] || 0);
+                            }
+                            if (!price || price === 0) {
+                                const krwKeys = Object.keys(row).filter(key => 
+                                    key.toLowerCase().includes('price') && key.toLowerCase().includes('krw')
+                                );
+                                if (krwKeys.length > 0) {
+                                    price = parseFloat(row[krwKeys[0]] || 0);
+                                }
+                            }
+                            
                             const product = {
-                                id: row.id || row.ID || row.Id || row['id'] || '',
-                                category: (row.category || row.Category || row['category'] || '').trim(),
-                                name: row['Product Name (English)'] || row['product name (english)'] || row.name || row.Name || '',
-                                price: row.price || row.Price || row['price'] || 0
+                                id: productId,
+                                category: category,
+                                name: productName,
+                                price: price,
+                                manufacturer: (row['Manufacturer'] || '').trim(),
+                                partNumber: (row['Part Number'] || '').trim(),
+                                images: imageFiles.length > 0 ? imageFiles : []
                             };
-                            console.log('Mapped product:', product);
+                            
                             return product;
-                        }).filter(p => p.id && p.name);
+                        }).filter(p => {
+                            const isValid = p.id && p.name;
+                            if (!isValid) {
+                                console.log('Filtered out product (missing id or name):', p);
+                            }
+                            return isValid;
+                        });
 
                         console.log('Products after filtering:', allProducts.length);
                         console.log('Sample products:', allProducts.slice(0, 3));
@@ -462,6 +518,7 @@
                     <div class="product-info">
                         <div class="product-category">${product.category}</div>
                         <div class="product-name">${product.name}</div>
+                        ${product.manufacturer ? `<div class="product-category" style="margin-top: 5px;">${product.manufacturer}</div>` : ''}
                         <div class="product-price">${formatPrice(product.price)}</div>
                         <div class="product-id">ID: ${product.id}</div>
                     </div>
@@ -471,14 +528,13 @@
 
         // Get product images (checks for multiple images)
         function getProductImages(productId) {
-            const images = [];
-            const maxImages = 5; // Check for up to 5 images per product
-            
-            for (let i = 1; i <= maxImages; i++) {
-                images.push(`${IMAGES_FOLDER}${productId}_image${i}.jpg`);
+            const product = allProducts.find(p => p.id == productId);
+            if (product && product.images && product.images.length > 0) {
+                // Use the actual image filenames from CSV
+                return product.images.map(img => `${IMAGES_FOLDER}${img}`);
             }
-            
-            return images;
+            // Fallback to placeholder
+            return [`https://via.placeholder.com/250x250?text=No+Image`];
         }
 
         // Initialize image sliders
@@ -501,11 +557,11 @@
 
         // Format price
         function formatPrice(price) {
-            if (!price) return 'Contact for price';
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD'
-            }).format(price);
+            if (!price || price === 0) return 'Contact for price';
+            return '€' + parseFloat(price).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
 
         // Search functionality
