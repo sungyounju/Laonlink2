@@ -255,7 +255,7 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <div class="logo">Laonlink AB</div>
+                <div class="logo">Your Store Name</div>
                 <div class="contact-info">
                     <h3>Contact Us</h3>
                     <p>📞 Phone: +1 (555) 123-4567</p>
@@ -317,36 +317,67 @@
 
         // Parse CSV and initialize
         async function loadProducts() {
+            const loadingEl = document.getElementById('loadingMessage');
+            
             try {
+                loadingEl.innerHTML = 'Fetching CSV file...';
+                console.log('Attempting to load CSV from:', CSV_PATH);
+                
                 const response = await fetch(CSV_PATH);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                loadingEl.innerHTML = 'CSV loaded, parsing...';
                 const csvText = await response.text();
+                
+                console.log('CSV text length:', csvText.length);
+                console.log('First 500 characters:', csvText.substring(0, 500));
                 
                 Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
-                    dynamicTyping: true,
+                    dynamicTyping: false, // Changed to false for better debugging
                     complete: function(results) {
-                        allProducts = results.data.map(row => ({
-                            id: row.id || row.ID || row.Id,
-                            category: (row.category || row.Category || '').trim(),
-                            name: row['Product Name (English)'] || row.name || row.Name || '',
-                            price: row.price || row.Price || 0
-                        })).filter(p => p.id && p.name);
+                        console.log('Parse complete!');
+                        console.log('Total rows parsed:', results.data.length);
+                        console.log('Column headers:', results.meta.fields);
+                        console.log('First 3 rows:', results.data.slice(0, 3));
+                        
+                        allProducts = results.data.map(row => {
+                            const product = {
+                                id: row.id || row.ID || row.Id || row['id'] || '',
+                                category: (row.category || row.Category || row['category'] || '').trim(),
+                                name: row['Product Name (English)'] || row['product name (english)'] || row.name || row.Name || '',
+                                price: row.price || row.Price || row['price'] || 0
+                            };
+                            console.log('Mapped product:', product);
+                            return product;
+                        }).filter(p => p.id && p.name);
 
-                        document.getElementById('loadingMessage').style.display = 'none';
+                        console.log('Products after filtering:', allProducts.length);
+                        console.log('Sample products:', allProducts.slice(0, 3));
+
+                        if (allProducts.length === 0) {
+                            loadingEl.innerHTML = '<p style="color: red;">No valid products found. Check browser console for details.</p>';
+                            return;
+                        }
+
+                        loadingEl.style.display = 'none';
                         initializeCategories();
                         displayProducts();
                     },
                     error: function(error) {
-                        console.error('Error parsing CSV:', error);
-                        document.getElementById('loadingMessage').innerHTML = 
-                            '<p style="color: red;">Error loading products. Please check console.</p>';
+                        console.error('Papa Parse error:', error);
+                        loadingEl.innerHTML = 
+                            '<p style="color: red;">Error parsing CSV: ' + error.message + '</p>';
                     }
                 });
             } catch (error) {
-                console.error('Error loading CSV:', error);
-                document.getElementById('loadingMessage').innerHTML = 
-                    '<p style="color: red;">Error loading CSV file. Make sure products.csv is in the root folder.</p>';
+                console.error('Fetch error:', error);
+                loadingEl.innerHTML = 
+                    '<p style="color: red;">Error loading CSV file: ' + error.message + '<br>Make sure products.csv is in the same folder as index.html</p>';
             }
         }
 
@@ -485,4 +516,3 @@
     </script>
 </body>
 </html>
-
