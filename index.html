@@ -528,13 +528,14 @@
 
         // Get product images (checks for multiple images)
         function getProductImages(productId) {
-            const product = allProducts.find(p => p.id == productId);
-            if (product && product.images && product.images.length > 0) {
-                // Use the actual image filenames from CSV
-                return product.images.map(img => `${IMAGES_FOLDER}${img}`);
+            const images = [];
+            const maxImages = 10; // Check for up to 10 images per product
+            
+            for (let i = 1; i <= maxImages; i++) {
+                images.push(`${IMAGES_FOLDER}${productId}_image${i}.jpg`);
             }
-            // Fallback to placeholder
-            return [`https://via.placeholder.com/250x250?text=No+Image`];
+            
+            return images;
         }
 
         // Initialize image sliders
