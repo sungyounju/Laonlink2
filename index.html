@@ -533,70 +533,11 @@
             `;
         }
 
-        // Check for additional images on hover
+        // Check for additional images on hover (DISABLED to prevent rate limiting)
+        // To enable multi-image support, you'll need to add image counts to your CSV
         function initializeImageSliders() {
-            document.querySelectorAll('.product-card').forEach(card => {
-                card.addEventListener('mouseenter', async function() {
-                    if (this.dataset.imagesLoaded) return;
-                    this.dataset.imagesLoaded = 'true';
-                    
-                    const productId = this.dataset.productId;
-                    const container = this.querySelector('.product-image-container');
-                    const additionalImages = [];
-                    
-                    // Check for up to 10 images
-                    for (let i = 2; i <= 10; i++) {
-                        const imgUrl = `${IMAGES_FOLDER}${productId}_image${i}.jpg`;
-                        const img = new Image();
-                        
-                        await new Promise((resolve) => {
-                            img.onload = () => {
-                                additionalImages.push(imgUrl);
-                                resolve();
-                            };
-                            img.onerror = () => resolve();
-                            img.src = imgUrl;
-                        });
-                        
-                        if (img.naturalWidth === 0) break; // Stop if image doesn't exist
-                    }
-                    
-                    if (additionalImages.length > 0) {
-                        // Add images
-                        additionalImages.forEach(imgUrl => {
-                            const img = document.createElement('img');
-                            img.src = imgUrl;
-                            img.className = 'product-image';
-                            img.style.display = 'none';
-                            img.alt = container.querySelector('.product-image').alt;
-                            container.appendChild(img);
-                        });
-                        
-                        // Add navigation dots
-                        const totalImages = additionalImages.length + 1;
-                        const navHtml = `
-                            <div class="image-nav">
-                                ${Array.from({length: totalImages}, (_, i) => 
-                                    `<div class="image-dot ${i === 0 ? 'active' : ''}" data-index="${i}"></div>`
-                                ).join('')}
-                            </div>
-                        `;
-                        container.insertAdjacentHTML('beforeend', navHtml);
-                        
-                        // Add click handlers
-                        const images = container.querySelectorAll('.product-image');
-                        container.querySelectorAll('.image-dot').forEach((dot, idx) => {
-                            dot.onclick = (e) => {
-                                e.stopPropagation();
-                                images.forEach(img => img.style.display = 'none');
-                                container.querySelectorAll('.image-dot').forEach(d => d.classList.remove('active'));
-                                images[idx].style.display = 'block';
-                                dot.classList.add('active');
-                            };
-                        });
-                    }
-                }, { once: true });
-            });
+            // Currently disabled - only showing first image
+            // This prevents excessive server requests and 404 errors
         }
 
         // Format price
