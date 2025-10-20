@@ -497,23 +497,12 @@
         // Create product card HTML
         function createProductCard(product) {
             const images = getProductImages(product.id);
-            const imageHTML = images.map((img, idx) => 
-                `<img src="${img}" alt="${product.name}" class="product-image" style="display: ${idx === 0 ? 'block' : 'none'}" onerror="this.src='https://via.placeholder.com/250x250?text=No+Image'">`
-            ).join('');
-            
-            const dotsHTML = images.length > 1 ? `
-                <div class="image-nav">
-                    ${images.map((_, idx) => 
-                        `<div class="image-dot ${idx === 0 ? 'active' : ''}" data-index="${idx}"></div>`
-                    ).join('')}
-                </div>
-            ` : '';
+            const imageHTML = `<img src="${images[0]}" alt="${product.name}" class="product-image" onerror="this.src='https://via.placeholder.com/250x250?text=No+Image'">`;
             
             return `
-                <div class="product-card">
+                <div class="product-card" data-product-id="${product.id}">
                     <div class="product-image-container" data-product-id="${product.id}">
                         ${imageHTML}
-                        ${dotsHTML}
                     </div>
                     <div class="product-info">
                         <div class="product-category">${product.category}</div>
@@ -526,33 +515,92 @@
             `;
         }
 
-        // Get product images (checks for multiple images)
+        // Get product images - only generate first image initially
         function getProductImages(productId) {
-            const images = [];
-            const maxImages = 10; // Check for up to 10 images per product
+            // Only return the first image initially to avoid rate limiting
+            return [`${IMAGES_FOLDER}${productId}_image1.jpg`];
+        }
+        
+        // Check if more images exist for a product
+        async function checkAdditionalImages(productId, container) {
+            const existingImages = [];
+            const maxImages = 10;
             
-            for (let i = 1; i <= maxImages; i++) {
-                images.push(`${IMAGES_FOLDER}${productId}_image${i}.jpg`);
+            // Already have image1, check for image2-10
+            for (let i = 2; i <= maxImages; i++) {
+                const imgUrl = `${IMAGES_FOLDER}${productId}_image${i}.jpg`;
+                try {
+                    const response = await fetch(imgUrl, { method: 'HEAD' });
+                    if (response.ok) {
+                        existingImages.push(imgUrl);
+                    } else {
+                        break; // Stop checking if one doesn't exist
+                    }
+                } catch {
+                    break; // Stop on error
+                }
             }
             
-            return images;
+            if (existingImages.length > 0) {
+                // Add additional images to the container
+                const imageContainer = container.querySelector('.product-image-container');
+                const firstImg = imageContainer.querySelector('.product-image');
+                
+                existingImages.forEach((imgUrl, idx) => {
+                    const img = document.createElement('img');
+                    img.src = imgUrl;
+                    img.alt = firstImg.alt;
+                    img.className = 'product-image';
+                    img.style.display = 'none';
+                    imageContainer.insertBefore(img, imageContainer.querySelector('.image-nav'));
+                });
+                
+                // Add navigation dots
+                const navHtml = `
+                    <div class="image-nav">
+                        ${[0, ...existingImages.map((_, i) => i + 1)].map(idx => 
+                            `<div class="image-dot ${idx === 0 ? 'active' : ''}" data-index="${idx}"></div>`
+                        ).join('')}
+                    </div>
+                `;
+                const oldNav = imageContainer.querySelector('.image-nav');
+                if (oldNav) oldNav.remove();
+                imageContainer.insertAdjacentHTML('beforeend', navHtml);
+                
+                // Reinitialize slider for this card
+                initializeImageSlider(imageContainer);
+            }
         }
 
         // Initialize image sliders
         function initializeImageSliders() {
-            document.querySelectorAll('.product-image-container').forEach(container => {
-                const dots = container.querySelectorAll('.image-dot');
-                const images = container.querySelectorAll('.product-image');
+            document.querySelectorAll('.product-card').forEach(card => {
+                const container = card.querySelector('.product-image-container');
+                initializeImageSlider(container);
                 
-                dots.forEach((dot, idx) => {
-                    dot.onclick = (e) => {
-                        e.stopPropagation();
-                        images.forEach(img => img.style.display = 'none');
-                        dots.forEach(d => d.classList.remove('active'));
-                        images[idx].style.display = 'block';
-                        dot.classList.add('active');
-                    };
-                });
+                // Lazy load additional images on hover
+                card.addEventListener('mouseenter', function() {
+                    if (!this.dataset.imagesLoaded) {
+                        this.dataset.imagesLoaded = 'true';
+                        const productId = this.dataset.productId;
+                        checkAdditionalImages(productId, this);
+                    }
+                }, { once: true });
+            });
+        }
+        
+        function initializeImageSlider(container) {
+            const dots = container.querySelectorAll('.image-dot');
+            const images = container.querySelectorAll('.product-image');
+            
+            dots.forEach((dot, idx) => {
+                dot.onclick = (e) => {
+                    e.stopPropagation();
+                    images.forEach(img => img.style.display = 'none');
+                    dots.forEach(d => d.classList.remove('active'));
+                    images[idx].style.display = 'block';
+                    dot.classList.add('active');
+                };
             });
         }
 
