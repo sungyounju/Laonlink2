@@ -44,6 +44,7 @@
             font-size: 28px;
             font-weight: bold;
             color: #2c3e50;
+            cursor: pointer;
         }
 
         .contact-info {
@@ -60,40 +61,95 @@
             color: #666;
         }
 
-        .category-nav {
-            background-color: #34495e;
-            padding: 15px 0;
-            margin-bottom: 30px;
-        }
-
-        .category-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .category-btn {
-            background-color: #fff;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
+        .breadcrumb {
+            padding: 20px 0;
             font-size: 14px;
-            transition: all 0.3s;
+            color: #666;
         }
 
-        .category-btn:hover {
-            background-color: #e74c3c;
-            color: #fff;
-            transform: translateY(-2px);
+        .breadcrumb a {
+            color: #e74c3c;
+            text-decoration: none;
+            cursor: pointer;
         }
 
-        .category-btn.active {
-            background-color: #e74c3c;
-            color: #fff;
+        .breadcrumb a:hover {
+            text-decoration: underline;
         }
 
+        /* Category Grid Styles */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .category-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .category-card:hover::before {
+            opacity: 1;
+        }
+
+        .category-card:nth-child(2n) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .category-card:nth-child(3n) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .category-card:nth-child(4n) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .category-card:nth-child(5n) {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .category-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .category-count {
+            font-size: 16px;
+            color: rgba(255,255,255,0.9);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Product Grid Styles */
         .search-bar {
             margin: 30px auto;
             max-width: 600px;
@@ -120,7 +176,6 @@
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
         }
 
         .product-card:hover {
@@ -157,10 +212,13 @@
             border-radius: 50%;
             background-color: rgba(255,255,255,0.5);
             cursor: pointer;
+            transition: all 0.3s;
         }
 
         .image-dot.active {
             background-color: #fff;
+            width: 24px;
+            border-radius: 4px;
         }
 
         .product-info {
@@ -194,6 +252,23 @@
             margin-top: 5px;
         }
 
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+        }
+
+        .no-products {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #999;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         .footer {
             background-color: #2c3e50;
             color: #fff;
@@ -217,23 +292,14 @@
             color: #bbb;
         }
 
-        .no-products {
-            text-align: center;
-            padding: 50px;
-            font-size: 18px;
-            color: #999;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 18px;
-        }
-
         @media (max-width: 768px) {
             .product-grid {
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
                 gap: 15px;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
             }
 
             .product-image-container {
@@ -255,7 +321,7 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <div class="logo">Your Store Name</div>
+                <div class="logo" onclick="showCategories()">Your Store Name</div>
                 <div class="contact-info">
                     <h3>Contact Us</h3>
                     <p>📞 Phone: +1 (555) 123-4567</p>
@@ -266,21 +332,25 @@
         </div>
     </header>
 
-    <nav class="category-nav">
-        <div class="container">
-            <div class="category-buttons" id="categoryButtons">
-                <button class="category-btn active" data-category="all">All Products</button>
-            </div>
-        </div>
-    </nav>
-
     <div class="container">
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search products...">
+        <div class="breadcrumb" id="breadcrumb">
+            <span id="breadcrumbText">Categories</span>
         </div>
 
         <div id="loadingMessage" class="loading">Loading products...</div>
-        <div class="product-grid" id="productGrid"></div>
+
+        <!-- Category View -->
+        <div id="categoryView" class="hidden">
+            <div class="category-grid" id="categoryGrid"></div>
+        </div>
+
+        <!-- Product View -->
+        <div id="productView" class="hidden">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search products...">
+            </div>
+            <div class="product-grid" id="productGrid"></div>
+        </div>
     </div>
 
     <footer class="footer">
@@ -309,159 +379,111 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script>
         let allProducts = [];
-        let currentCategory = 'all';
+        let currentCategory = null;
+        let categories = {};
 
-        // Configuration - UPDATE THESE PATHS
-        const CSV_PATH = 'products.csv'; // Path to your CSV file
-        const IMAGES_FOLDER = 'images/'; // Path to your images folder
+        // Configuration
+        const CSV_PATH = 'products.csv';
+        const IMAGES_FOLDER = 'images/';
 
-        // Parse CSV and initialize
+        // Load products from CSV
         async function loadProducts() {
             const loadingEl = document.getElementById('loadingMessage');
             
             try {
-                loadingEl.innerHTML = 'Fetching CSV file...';
-                console.log('Attempting to load CSV from:', CSV_PATH);
-                
+                loadingEl.innerHTML = 'Loading catalog...';
                 const response = await fetch(CSV_PATH);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                loadingEl.innerHTML = 'CSV loaded, parsing...';
                 const csvText = await response.text();
-                
-                console.log('CSV text length:', csvText.length);
-                console.log('First 500 characters:', csvText.substring(0, 500));
                 
                 Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
-                    dynamicTyping: false, // Changed to false for better debugging
+                    dynamicTyping: false,
                     complete: function(results) {
-                        console.log('Parse complete!');
-                        console.log('Total rows parsed:', results.data.length);
-                        console.log('Column headers:', results.meta.fields);
-                        console.log('First 3 rows:', results.data.slice(0, 3));
-                        
                         allProducts = results.data.map(row => {
-                            // Parse image filenames
-                            const imageString = row['Image Filenames'] || '';
-                            const imageFiles = imageString.split(';').map(img => img.trim()).filter(img => img);
-                            
-                            // Get category - use Category if Category (English) is empty
-                            let category = (row['Category (English)'] || '').trim();
-                            if (!category || category === '') {
-                                category = (row['Category'] || 'Uncategorized').trim();
-                            }
-                            
-                            // Try multiple ways to get the Product ID
-                            let productId = '';
                             const possibleIdKeys = Object.keys(row).filter(key => 
                                 key.toLowerCase().includes('product') && key.toLowerCase().includes('id')
                             );
-                            if (possibleIdKeys.length > 0) {
-                                productId = (row[possibleIdKeys[0]] || '').toString().trim();
-                            }
-                            
-                            // Try multiple ways to get the Product Name
-                            let productName = '';
                             const possibleNameKeys = Object.keys(row).filter(key => 
                                 key.toLowerCase().includes('product') && 
                                 key.toLowerCase().includes('name') && 
                                 key.toLowerCase().includes('english')
                             );
-                            if (possibleNameKeys.length > 0) {
-                                productName = (row[possibleNameKeys[0]] || '').trim();
-                            }
-                            
-                            // Try multiple ways to get price
-                            let price = 0;
                             const possiblePriceKeys = Object.keys(row).filter(key => 
                                 key.toLowerCase().includes('price') && key.toLowerCase().includes('eur')
                             );
-                            if (possiblePriceKeys.length > 0) {
-                                price = parseFloat(row[possiblePriceKeys[0]] || 0);
-                            }
-                            if (!price || price === 0) {
-                                const krwKeys = Object.keys(row).filter(key => 
-                                    key.toLowerCase().includes('price') && key.toLowerCase().includes('krw')
-                                );
-                                if (krwKeys.length > 0) {
-                                    price = parseFloat(row[krwKeys[0]] || 0);
-                                }
+                            
+                            let productId = possibleIdKeys.length > 0 ? (row[possibleIdKeys[0]] || '').toString().trim() : '';
+                            let productName = possibleNameKeys.length > 0 ? (row[possibleNameKeys[0]] || '').trim() : '';
+                            let price = possiblePriceKeys.length > 0 ? parseFloat(row[possiblePriceKeys[0]] || 0) : 0;
+                            
+                            let category = (row['Category (English)'] || '').trim();
+                            if (!category) {
+                                category = (row['Category'] || 'Uncategorized').trim();
                             }
                             
-                            const product = {
+                            return {
                                 id: productId,
                                 category: category,
                                 name: productName,
                                 price: price,
                                 manufacturer: (row['Manufacturer'] || '').trim(),
-                                partNumber: (row['Part Number'] || '').trim(),
-                                images: imageFiles.length > 0 ? imageFiles : []
+                                partNumber: (row['Part Number'] || '').trim()
                             };
-                            
-                            return product;
-                        }).filter(p => {
-                            const isValid = p.id && p.name;
-                            if (!isValid) {
-                                console.log('Filtered out product (missing id or name):', p);
+                        }).filter(p => p.id && p.name);
+
+                        // Group by category
+                        allProducts.forEach(product => {
+                            if (!categories[product.category]) {
+                                categories[product.category] = [];
                             }
-                            return isValid;
+                            categories[product.category].push(product);
                         });
 
-                        console.log('Products after filtering:', allProducts.length);
-                        console.log('Sample products:', allProducts.slice(0, 3));
-
-                        if (allProducts.length === 0) {
-                            loadingEl.innerHTML = '<p style="color: red;">No valid products found. Check browser console for details.</p>';
-                            return;
-                        }
-
                         loadingEl.style.display = 'none';
-                        initializeCategories();
-                        displayProducts();
+                        showCategories();
                     },
                     error: function(error) {
-                        console.error('Papa Parse error:', error);
-                        loadingEl.innerHTML = 
-                            '<p style="color: red;">Error parsing CSV: ' + error.message + '</p>';
+                        loadingEl.innerHTML = '<p style="color: red;">Error loading CSV: ' + error.message + '</p>';
                     }
                 });
             } catch (error) {
-                console.error('Fetch error:', error);
-                loadingEl.innerHTML = 
-                    '<p style="color: red;">Error loading CSV file: ' + error.message + '<br>Make sure products.csv is in the same folder as index.html</p>';
+                loadingEl.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
             }
         }
 
-        // Initialize category buttons
-        function initializeCategories() {
-            const categories = [...new Set(allProducts.map(p => p.category).filter(c => c))];
-            const buttonsContainer = document.getElementById('categoryButtons');
+        // Show category grid
+        function showCategories() {
+            currentCategory = null;
+            document.getElementById('categoryView').classList.remove('hidden');
+            document.getElementById('productView').classList.add('hidden');
+            document.getElementById('breadcrumbText').innerHTML = 'Categories';
             
-            categories.forEach(category => {
-                const btn = document.createElement('button');
-                btn.className = 'category-btn';
-                btn.textContent = category;
-                btn.dataset.category = category;
-                btn.onclick = () => filterByCategory(category);
-                buttonsContainer.appendChild(btn);
-            });
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = Object.keys(categories).sort().map(category => {
+                const count = categories[category].length;
+                return `
+                    <div class="category-card" onclick="showCategory('${category}')">
+                        <div class="category-name">${category}</div>
+                        <div class="category-count">${count} product${count !== 1 ? 's' : ''}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        // Filter products by category
-        function filterByCategory(category) {
+        // Show products in a category
+        function showCategory(category) {
             currentCategory = category;
-            
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.category === category) {
-                    btn.classList.add('active');
-                }
-            });
+            document.getElementById('categoryView').classList.add('hidden');
+            document.getElementById('productView').classList.remove('hidden');
+            document.getElementById('breadcrumbText').innerHTML = 
+                `<a onclick="showCategories()">Categories</a> > ${category}`;
+            document.getElementById('searchInput').value = '';
             
             displayProducts();
         }
@@ -471,14 +493,12 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const grid = document.getElementById('productGrid');
             
-            let filtered = currentCategory === 'all' 
-                ? allProducts 
-                : allProducts.filter(p => p.category === currentCategory);
+            let filtered = categories[currentCategory] || [];
             
             if (searchTerm) {
                 filtered = filtered.filter(p => 
                     p.name.toLowerCase().includes(searchTerm) ||
-                    p.category.toLowerCase().includes(searchTerm) ||
+                    p.manufacturer.toLowerCase().includes(searchTerm) ||
                     p.id.toString().includes(searchTerm)
                 );
             }
@@ -489,20 +509,18 @@
             }
             
             grid.innerHTML = filtered.map(product => createProductCard(product)).join('');
-            
-            // Initialize image sliders
             initializeImageSliders();
         }
 
-        // Create product card HTML
+        // Create product card
         function createProductCard(product) {
-            const images = getProductImages(product.id);
-            const imageHTML = `<img src="${images[0]}" alt="${product.name}" class="product-image" onerror="this.src='https://via.placeholder.com/250x250?text=No+Image'">`;
-            
             return `
                 <div class="product-card" data-product-id="${product.id}">
-                    <div class="product-image-container" data-product-id="${product.id}">
-                        ${imageHTML}
+                    <div class="product-image-container">
+                        <img src="${IMAGES_FOLDER}${product.id}_image1.jpg" 
+                             alt="${product.name}" 
+                             class="product-image" 
+                             onerror="this.src='https://via.placeholder.com/250x250?text=No+Image'">
                     </div>
                     <div class="product-info">
                         <div class="product-category">${product.category}</div>
@@ -515,92 +533,69 @@
             `;
         }
 
-        // Get product images - only generate first image initially
-        function getProductImages(productId) {
-            // Only return the first image initially to avoid rate limiting
-            return [`${IMAGES_FOLDER}${productId}_image1.jpg`];
-        }
-        
-        // Check if more images exist for a product
-        async function checkAdditionalImages(productId, container) {
-            const existingImages = [];
-            const maxImages = 10;
-            
-            // Already have image1, check for image2-10
-            for (let i = 2; i <= maxImages; i++) {
-                const imgUrl = `${IMAGES_FOLDER}${productId}_image${i}.jpg`;
-                try {
-                    const response = await fetch(imgUrl, { method: 'HEAD' });
-                    if (response.ok) {
-                        existingImages.push(imgUrl);
-                    } else {
-                        break; // Stop checking if one doesn't exist
-                    }
-                } catch {
-                    break; // Stop on error
-                }
-            }
-            
-            if (existingImages.length > 0) {
-                // Add additional images to the container
-                const imageContainer = container.querySelector('.product-image-container');
-                const firstImg = imageContainer.querySelector('.product-image');
-                
-                existingImages.forEach((imgUrl, idx) => {
-                    const img = document.createElement('img');
-                    img.src = imgUrl;
-                    img.alt = firstImg.alt;
-                    img.className = 'product-image';
-                    img.style.display = 'none';
-                    imageContainer.insertBefore(img, imageContainer.querySelector('.image-nav'));
-                });
-                
-                // Add navigation dots
-                const navHtml = `
-                    <div class="image-nav">
-                        ${[0, ...existingImages.map((_, i) => i + 1)].map(idx => 
-                            `<div class="image-dot ${idx === 0 ? 'active' : ''}" data-index="${idx}"></div>`
-                        ).join('')}
-                    </div>
-                `;
-                const oldNav = imageContainer.querySelector('.image-nav');
-                if (oldNav) oldNav.remove();
-                imageContainer.insertAdjacentHTML('beforeend', navHtml);
-                
-                // Reinitialize slider for this card
-                initializeImageSlider(imageContainer);
-            }
-        }
-
-        // Initialize image sliders
+        // Check for additional images on hover
         function initializeImageSliders() {
             document.querySelectorAll('.product-card').forEach(card => {
-                const container = card.querySelector('.product-image-container');
-                initializeImageSlider(container);
-                
-                // Lazy load additional images on hover
-                card.addEventListener('mouseenter', function() {
-                    if (!this.dataset.imagesLoaded) {
-                        this.dataset.imagesLoaded = 'true';
-                        const productId = this.dataset.productId;
-                        checkAdditionalImages(productId, this);
+                card.addEventListener('mouseenter', async function() {
+                    if (this.dataset.imagesLoaded) return;
+                    this.dataset.imagesLoaded = 'true';
+                    
+                    const productId = this.dataset.productId;
+                    const container = this.querySelector('.product-image-container');
+                    const additionalImages = [];
+                    
+                    // Check for up to 10 images
+                    for (let i = 2; i <= 10; i++) {
+                        const imgUrl = `${IMAGES_FOLDER}${productId}_image${i}.jpg`;
+                        const img = new Image();
+                        
+                        await new Promise((resolve) => {
+                            img.onload = () => {
+                                additionalImages.push(imgUrl);
+                                resolve();
+                            };
+                            img.onerror = () => resolve();
+                            img.src = imgUrl;
+                        });
+                        
+                        if (img.naturalWidth === 0) break; // Stop if image doesn't exist
+                    }
+                    
+                    if (additionalImages.length > 0) {
+                        // Add images
+                        additionalImages.forEach(imgUrl => {
+                            const img = document.createElement('img');
+                            img.src = imgUrl;
+                            img.className = 'product-image';
+                            img.style.display = 'none';
+                            img.alt = container.querySelector('.product-image').alt;
+                            container.appendChild(img);
+                        });
+                        
+                        // Add navigation dots
+                        const totalImages = additionalImages.length + 1;
+                        const navHtml = `
+                            <div class="image-nav">
+                                ${Array.from({length: totalImages}, (_, i) => 
+                                    `<div class="image-dot ${i === 0 ? 'active' : ''}" data-index="${i}"></div>`
+                                ).join('')}
+                            </div>
+                        `;
+                        container.insertAdjacentHTML('beforeend', navHtml);
+                        
+                        // Add click handlers
+                        const images = container.querySelectorAll('.product-image');
+                        container.querySelectorAll('.image-dot').forEach((dot, idx) => {
+                            dot.onclick = (e) => {
+                                e.stopPropagation();
+                                images.forEach(img => img.style.display = 'none');
+                                container.querySelectorAll('.image-dot').forEach(d => d.classList.remove('active'));
+                                images[idx].style.display = 'block';
+                                dot.classList.add('active');
+                            };
+                        });
                     }
                 }, { once: true });
-            });
-        }
-        
-        function initializeImageSlider(container) {
-            const dots = container.querySelectorAll('.image-dot');
-            const images = container.querySelectorAll('.product-image');
-            
-            dots.forEach((dot, idx) => {
-                dot.onclick = (e) => {
-                    e.stopPropagation();
-                    images.forEach(img => img.style.display = 'none');
-                    dots.forEach(d => d.classList.remove('active'));
-                    images[idx].style.display = 'block';
-                    dot.classList.add('active');
-                };
             });
         }
 
@@ -616,7 +611,7 @@
         // Search functionality
         document.getElementById('searchInput').addEventListener('input', displayProducts);
 
-        // Load products on page load
+        // Load on page load
         loadProducts();
     </script>
 </body>
